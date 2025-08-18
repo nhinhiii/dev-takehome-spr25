@@ -24,7 +24,7 @@ export default function AdminPage() {
     }
   };
   return (
-    <div>
+    <div className="justify-center items-center flex h-96">
       <Dropdown
         options={statusOptions}
         value={currentStatus}

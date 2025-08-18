@@ -13,3 +13,10 @@ export interface ItemRequest {
   lastEditedDate: string | null;
   status: RequestStatus;
 }
+
+export interface PaginatedRequest {
+  data: ItemRequest[];
+  currentPage: number;
+  totalPages: number;
+  pageSize: number;
+}

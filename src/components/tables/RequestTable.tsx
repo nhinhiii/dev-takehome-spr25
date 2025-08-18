@@ -1,6 +1,7 @@
 "use client";
 
 import { ItemRequest, RequestStatus } from "@/lib/types/request";
+import TableRow from "./TableRow";
 
 interface RequestTableProps {
   requests: ItemRequest[];
@@ -14,13 +15,13 @@ interface RequestTableProps {
 const TableHeader = ({
   onSelectAll,
   allSelected,
-  multiSelected,
+  someSelected,
 }: {
-  onSelectedAll: () => void;
+  onSelectAll: () => void;
   allSelected: boolean;
-  multiSelected: boolean;
+  someSelected: boolean;
 }) => (
-  <thead className="bg-[#EAECF0] text-xs uppercase text-gray-text">
+  <thead className="bg-gray-fill-light text-xs uppercase text-gray-text">
     <tr>
       <th scope="col" className="p-4">
         <div className="flex items-center">
@@ -32,7 +33,7 @@ const TableHeader = ({
             checked={allSelected}
             ref={(input) => {
               if (input) {
-                input.indeterminate = multiSelected && !allSelected;
+                input.indeterminate = someSelected && !allSelected;
               }
             }}
           />
@@ -48,7 +49,7 @@ const TableHeader = ({
         Item Requested
       </th>
       <th scope="col" className="px-6 py-3">
-        Create
+        Created
       </th>
       <th scope="col" className="px-6 py-3">
         Updated
@@ -72,19 +73,21 @@ export default function RequestTable({
     return <div className="py-8 text-center text-gray-text"> Loading ...</div>;
   }
   if (!requests || requests.length === 0) {
-    return <div className="py-8 text-center text-">No items found</div>;
+    return (
+      <div className="py-8 text-center text-gray-text">No items found</div>
+    );
   }
 
   const allSelected = selectedRows.size === requests.length;
-  const multiSelected = selectedRows.size > 0 && !allSelected;
+  const someSelected = selectedRows.size > 0 && !allSelected;
 
   return (
-    <div className="relative overfolw-x-auto border border-gray-stroke sm:rounded-lg">
+    <div className="relative overflow-x-auto border border-gray-stroke sm:rounded-lg">
       <table className="w-full text-left text-sm text-gray-text">
         <TableHeader
-          onSelectedAll={onSelectAll}
+          onSelectAll={onSelectAll}
           allSelected={allSelected}
-          multiSelected={multiSelected}
+          someSelected={someSelected}
         />
         <tbody>
           {requests.map((request) => (

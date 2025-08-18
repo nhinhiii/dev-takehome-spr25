@@ -1,49 +1,35 @@
 "use client";
 
-import Button from "@/components/atoms/Button";
-import Input from "@/components/atoms/Input";
+import Dropdown from "@/components/atoms/Dropdown";
+import { RequestStatus } from "@/lib/types/request";
 import { useState } from "react";
 
-/**
- * Legacy front-end code from Crisis Corner's previous admin page!
- */
-export default function ItemRequestsPage() {
-  const [item, setItem] = useState<string>("");
-  const [itemList, setItemList] = useState<string[]>([]);
+const statusOptions = [
+  { label: "Pending", value: RequestStatus.PENDING },
+  { label: "Approved", value: RequestStatus.APPROVED },
+  { label: "Completed", value: RequestStatus.COMPLETED },
+  { label: "Rejected", value: RequestStatus.REJECTED },
+];
 
-  const handleAddItem = (): void => {
-    if (item.trim()) {
-      setItemList((prevList) => [...prevList, item.trim()]);
-      setItem("");
+export default function AdminPage() {
+  const [currentStatus, setCurrentStatus] = useState(statusOptions[0]);
+
+  const handlerStatusChange = (newValue: string) => {
+    const newStatusOption = statusOptions.find(
+      (option) => option.value === newValue
+    );
+
+    if (newStatusOption) {
+      setCurrentStatus(newStatusOption);
     }
   };
-
   return (
-    <div className="max-w-md mx-auto mt-8 flex flex-col items-center gap-6">
-      <h2 className="font-bold">Approve Items</h2>
-
-      <div className="flex flex-col w-full gap-4">
-        <Input
-          type="text"
-          placeholder="Type an item"
-          value={item}
-          onChange={(e) => setItem(e.target.value)}
-          label="Item"
-        />
-        <Button onClick={handleAddItem}>Approve</Button>
-      </div>
-      <div className="flex flex-col gap-3">
-        <h3 className="underline">Currently approved items:</h3>
-        {itemList.length > 0 ? (
-          <ul className="list-disc pl-5">
-            {itemList.map((listItem, index) => (
-              <li key={index}>{listItem}</li>
-            ))}
-          </ul>
-        ) : (
-          "None :("
-        )}
-      </div>
+    <div>
+      <Dropdown
+        options={statusOptions}
+        value={currentStatus}
+        onChange={handlerStatusChange}
+      ></Dropdown>
     </div>
   );
 }

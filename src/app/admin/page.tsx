@@ -1,35 +1,78 @@
 "use client";
 
-import Dropdown from "@/components/atoms/Dropdown";
-import { RequestStatus } from "@/lib/types/request";
+import { PaginatedRequest, RequestStatus } from "@/lib/types/request";
+import { useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 
-const statusOptions = [
-  { label: "Pending", value: RequestStatus.PENDING },
-  { label: "Approved", value: RequestStatus.APPROVED },
-  { label: "Completed", value: RequestStatus.COMPLETED },
-  { label: "Rejected", value: RequestStatus.REJECTED },
-];
+const fetchRequests = async (
+  page: number,
+  status: string
+): Promise<PaginatedRequest> => {
+  const params = new URLSearchParams({ page: page.toString() });
+  if (status !== "all") {
+    params.append("status", status);
+  }
 
-export default function AdminPage() {
-  const [currentStatus, setCurrentStatus] = useState(statusOptions[0]);
+  const response = await fetch(`api/mock/request?${params.toString()}`);
 
-  const handlerStatusChange = (newValue: string) => {
-    const newStatusOption = statusOptions.find(
-      (option) => option.value === newValue
-    );
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to fetch requests.");
+  }
 
-    if (newStatusOption) {
-      setCurrentStatus(newStatusOption);
-    }
-  };
-  return (
-    <div className="justify-center items-center flex h-96">
-      <Dropdown
-        options={statusOptions}
-        value={currentStatus}
-        onChange={handlerStatusChange}
-      ></Dropdown>
-    </div>
-  );
+  return response.json();
+};
+
+const updateRequestStatus = async ({
+  id,
+  status,
+}: {
+  id: number;
+  status: RequestStatus;
+}) => {
+  const response = await fetch(`api/mock/request`, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ id, status }),
+  });
+
+  return response.json();
+};
+
+const StatusTab = ({
+  label,
+  value,
+  activeTab,
+  onClick,
+}: {
+  label: string;
+  value: string;
+  activeTab: string;
+  onClick: (status: string) => void;
+}) => (
+  <button
+    onClick={() => onClick(value)}
+    className={`status-badge ${
+      activeTab === value ? "status-badge-active" : "status-badge-inactive"
+    }`}
+  >
+    {label}
+  </button>
+);
+
+export default function ItemRequestsPage() {
+  const queryClient = useQueryClient();
+  const [page, setPage] = useState(1);
+  const [activeStatusTab, setActiveStatusTab] = useState("all");
+  const [selectedRows, setSelectedRows] = useState(new Set<number>());
+
+  const {
+    data: paginatedData,
+    isLoading,
+    isError,
+    error,
+  } = useQuery<PaginatedRequest, Error>({
+    queryKey: ["requests", page, activeStatusTab],
+    queryFn: () => fetchRequests(page, activeStatusTab),
+  });
 }

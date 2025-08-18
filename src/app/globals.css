@@ -4,40 +4,57 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  font-family: "Inter";
+@layer base {
+  body {
+    @apply bg-gray-fill-light text-gray-text;
+    font-family: "Inter", sans-serif;
+  }
 }
 
-h1 {
-  font-size: 48px;
-  line-height: 56px;
+@layer components {
+  .status-badge {
+    @apply rounded-md px-4 py-2 text-sm font-medium inline-block transistion-colors duration 150s ease-in-out;
+  }
+  .status-badge-active {
+    @apply bg-primary text-white;
+  }
+  .status-badge-inactive {
+    @apply bg-gray-fill text-gray-text hover:bg-primary-fill hover:text-primary;
+  }
 }
 
-h2 {
-  font-size: 18px;
-  line-height: 28px;
+.status-pills {
+  @apply flex w-fit items-center gap-1.5 rounded-full px-3 py-1 text-sm font-medium capitalize;
 }
 
-h3 {
-  font-size: 16px;
-  line-height: 18px;
+.status-pills-pending {
+  @apply bg-negative-fill text-negative-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-negative-indicator;
 }
 
-h4 {
-  font-size: 14px;
+.status-pills-approved {
+  @apply bg-warning-fill text-warning-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-warning-indicator;
 }
 
-h5 {
-  font-size: 12px;
-  line-height: 18px;
+.status-pills-completed {
+  @apply bg-success-fill text-success-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-success-indicator;
 }
 
-p {
-  font-size: 14px;
-  line-height: 20px;
+.status-pills-rejected {
+  @apply bg-danger-fill text-danger-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-danger-indicator;
 }
 
-label {
-  font-size: 16px;
-  line-height: 24px;
+.checkbox {
+  @apply h-4 w-4 cursor-pointer rounded border-gray-stroke bg-white transition-colors;
+  @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
+  @apply hover:bg-primary-fill;
+  @apply checked:border-primary checked:bg-primary bg-center bg-no-repeat;
+}
+
+.row-selected {
+  @apply bg-primary-fill;
+}
+
+.row-selected td,
+.row-selected th {
+  @apply text-gray-text-strong;
 }

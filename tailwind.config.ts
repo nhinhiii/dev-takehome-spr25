@@ -22,6 +22,7 @@ export default {
           text: {
             DEFAULT: "#667084",
             dark: "#6a6a6a",
+            strong: "#101828",
           },
         },
         success: {

@@ -1,7 +1,7 @@
 "use client";
 
 import { ItemRequest, RequestStatus } from "@/lib/types/request";
-import { cn, formateDate } from "@/lib/utils";
+import { cn, formatDate } from "@/lib/utils";
 import Dropdown from "../atoms/Dropdown";
 
 interface TableRowProps {
@@ -65,9 +65,9 @@ export default function TableRow({
         {itemRequested}
       </td>
 
-      <td className="px-6 py-4"> {formateDate(requestCreatedDate)}</td>
+      <td className="px-6 py-4"> {formatDate(requestCreatedDate)}</td>
       <td className="px-6 py-4">
-        {formateDate(lastEditedDate ?? requestCreatedDate)}
+        {formatDate(lastEditedDate ?? requestCreatedDate)}
       </td>
 
       <td className="px-6 py-4">

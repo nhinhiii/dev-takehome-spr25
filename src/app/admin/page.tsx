@@ -16,7 +16,7 @@ const fetchRequests = async (
     params.append("status", status);
   }
 
-  const response = await fetch(`api/mock/request?${params.toString()}`);
+  const response = await fetch(`/api/mock/request?${params.toString()}`);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -33,7 +33,7 @@ const updateRequestStatus = async ({
   id: number;
   status: RequestStatus;
 }) => {
-  const response = await fetch(`api/mock/request`, {
+  const response = await fetch(`/api/mock/request`, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, status }),
@@ -113,7 +113,7 @@ export default function ItemRequestsPage() {
     onError: (err, variables, context) => {
       if (context?.previousData) {
         queryClient.setQueryData(
-          ["request", page, activeStatusTab],
+          ["requests", page, activeStatusTab],
           context.previousData
         );
       }
@@ -159,13 +159,13 @@ export default function ItemRequestsPage() {
   };
 
   const requests = paginatedData?.data ?? [];
-  const totalRecords = paginatedData?.totalPages ?? 0;
+  const totalRecords = paginatedData?.totalRecords ?? 0;
   const pageSize = paginatedData?.pageSize ?? 10;
 
   return (
     <>
       <Toaster position="top-center" />
-      <main className="p-4 sm p-6 md:p-8">
+      <main className="p-4 sm:p-6 md:p-8">
         <div className="mx-auto max-w-7xl">
           <header className="mb-6">
             <h1 className="text-2xl font-bold text-gray-text-strong">

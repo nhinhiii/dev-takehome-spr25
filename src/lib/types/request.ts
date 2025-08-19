@@ -16,7 +16,7 @@ export interface ItemRequest {
 
 export interface PaginatedRequest {
   data: ItemRequest[];
-  currentPage: number;
-  totalPages: number;
+  page: number;
+  totalRecords: number;
   pageSize: number;
 }

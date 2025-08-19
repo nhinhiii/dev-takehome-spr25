@@ -27,19 +27,19 @@
   }
 
   .status-pills-pending {
-    @apply bg-negative-fill text-negative-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-negative-indicator;
+    @apply bg-negative-fill text-negative-text before:inline-flex before:items-center before:h-1.5 before:w-1.5 before:rounded-full before:bg-negative-indicator;
   }
 
   .status-pills-approved {
-    @apply bg-warning-fill text-warning-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-warning-indicator;
+    @apply bg-warning-fill text-warning-text before:inline-flex before:items-center before:h-1.5 before:w-1.5 before:rounded-full before:bg-warning-indicator;
   }
 
   .status-pills-completed {
-    @apply bg-success-fill text-success-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-success-indicator;
+    @apply bg-success-fill text-success-text before:inline-flex before:items-center before:h-1.5 before:w-1.5 before:rounded-full before:bg-success-indicator;
   }
 
   .status-pills-rejected {
-    @apply bg-danger-fill text-danger-text before:h-1.5 before:w-1.5 before:rounded-full before:bg-danger-indicator;
+    @apply bg-danger-fill text-danger-text before:inline-flex before:items-center before:h-1.5 before:w-1.5 before:rounded-full before:bg-danger-indicator;
   }
 
   .checkbox {
@@ -49,12 +49,13 @@
     @apply checked:border-primary checked:bg-primary checked:bg-[url('/icons/checkmark.svg')] bg-center bg-no-repeat;
   }
 
-  .row-selected {
-    @apply bg-primary-fill;
+  .checkbox:checked {
+    @apply bg-primary;
   }
 
-  .row-selected td,
-  .row-selected th {
+  .row-selected > td,
+  .row-selected > th {
+    @apply bg-primary-fill;
     @apply text-gray-text-strong;
   }
 }

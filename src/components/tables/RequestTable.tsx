@@ -28,7 +28,7 @@ const TableHeader = ({
           <input
             id="checkbox-all-search"
             type="checkbox"
-            className="checkbox"
+            className="checkbox "
             onChange={onSelectAll}
             checked={allSelected}
             ref={(input) => {

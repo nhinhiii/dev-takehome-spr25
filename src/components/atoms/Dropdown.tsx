@@ -26,7 +26,7 @@ const statusPillsMap: Record<string, string> = {
 
 export default function Dropdown({ options, value, onChange }: DropdownProps) {
   return (
-    <Menu as="div" className="relative inline-block text-left w-32">
+    <Menu as="div" className="relative inline-block text-left w-40">
       <div>
         <Menu.Button
           className={cn(

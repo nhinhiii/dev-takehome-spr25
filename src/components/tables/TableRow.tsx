@@ -38,16 +38,16 @@ export default function TableRow({
   return (
     <tr
       className={cn(
-        "border-b bg-white hover:bg-gray-fill",
+        "group border-b hover:bg-primary-fill",
         isSelected && "row-selected"
       )}
     >
       <td className="w-4 p-4">
         <div className="flex items-center">
           <input
-            className="checkbox"
             id={`checkbox-table-${id}`}
             type="checkbox"
+            className="checkbox"
             checked={isSelected}
             onChange={onSelect}
           />
@@ -70,7 +70,7 @@ export default function TableRow({
         {formatDate(lastEditedDate ?? requestCreatedDate)}
       </td>
 
-      <td className="px-6 py-4">
+      <td className="px-8 py-4">
         <Dropdown
           options={statusOptions}
           value={{ label: status, value: status }}

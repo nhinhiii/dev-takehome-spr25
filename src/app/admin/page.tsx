@@ -173,7 +173,7 @@ export default function ItemRequestsPage() {
             </h1>
           </header>
 
-          <div className="rounded-lg bg-white p-6 shadow-sm">
+          <div className="rounded-lg bg-white p-10 shadow-sm">
             <div className="mb-4 flex space-x-2">
               <StatusTab
                 label="All"

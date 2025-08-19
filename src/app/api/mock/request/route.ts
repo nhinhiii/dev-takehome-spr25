@@ -1,58 +1,106 @@
 import { ResponseType } from "@/lib/types/apiResponse";
-import {
-  createNewMockRequest,
-  editMockStatusRequest,
-  getMockItemRequests,
-} from "@/server/mock/requests";
-import { ServerResponseBuilder } from "@/lib/builders/serverResponseBuilder";
-import { InputException } from "@/lib/errors/inputExceptions";
+import { RequestStatus } from "@/lib/types/request";
+import mockItemRequests from "../data";
+import { PAGINATION_PAGE_SIZE } from "@/lib/constants/config";
+import { NextResponse } from "next/server";
 
 export async function GET(request: Request) {
-  const url = new URL(request.url);
-  const status = url.searchParams.get("status");
-  const page = parseInt(url.searchParams.get("page") || "1");
   try {
-    const paginatedRequests = getMockItemRequests(status, page);
-    return new Response(JSON.stringify(paginatedRequests), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    if (e instanceof InputException) {
-      return new ServerResponseBuilder(ResponseType.INVALID_INPUT).build();
-    }
-    return new ServerResponseBuilder(ResponseType.UNKNOWN_ERROR).build();
-  }
-}
+    const url = new URL(request.url);
+    const status = url.searchParams.get("status") as RequestStatus | null;
+    const page = parseInt(url.searchParams.get("page") || "1");
 
-export async function PUT(request: Request) {
-  try {
-    const req = await request.json();
-    const newRequest = createNewMockRequest(req);
-    return new Response(JSON.stringify(newRequest), {
-      status: 201,
-      headers: { "Content-Type": "application/json" },
-    });
+    const filteredData =
+      status && status !== "all"
+        ? mockItemRequests.filter((item) => item.status === status)
+        : [...mockItemRequests];
+
+    filteredData.sort(
+      (a, b) => b.requestCreatedDate.getTime() - a.requestCreatedDate.getTime()
+    );
+    const totalRecords = filteredData.length;
+
+    const startIdx = (page - 1) * PAGINATION_PAGE_SIZE;
+    const endIdx = startIdx + PAGINATION_PAGE_SIZE;
+    const paginatedItems = filteredData.slice(startIdx, endIdx);
+
+    const responsePayLoad = {
+      data: paginatedItems,
+      page: page,
+      totalRecords: totalRecords,
+      pageSize: PAGINATION_PAGE_SIZE,
+    };
+
+    return NextResponse.json(responsePayLoad, { status: 200 });
   } catch (e) {
-    if (e instanceof InputException) {
-      return new ServerResponseBuilder(ResponseType.INVALID_INPUT).build();
-    }
-    return new ServerResponseBuilder(ResponseType.UNKNOWN_ERROR).build();
+    return NextResponse.json({ message: "An unknow error" }, { status: 500 });
   }
 }
 
 export async function PATCH(request: Request) {
   try {
-    const req = await request.json();
-    const editedRequest = editMockStatusRequest(req);
-    return new Response(JSON.stringify(editedRequest), {
-      status: 200,
-      headers: { "Content-Type": "application/json" },
-    });
-  } catch (e) {
-    if (e instanceof InputException) {
-      return new ServerResponseBuilder(ResponseType.INVALID_INPUT).build();
+    const { id, status } = await request.json();
+
+    if (!id || !status) {
+      return NextResponse.json(
+        { message: "Invalid Input! ID and status are required" },
+        { status: 400 }
+      );
     }
-    return new ServerResponseBuilder(ResponseType.UNKNOWN_ERROR).build();
+
+    const itemIdx = mockItemRequests.findIndex((item) => item.id === id);
+
+    if (itemIdx === -1) {
+      return NextResponse.json(
+        { message: `Item with ID ${id} not found.` },
+        { status: 404 }
+      );
+    }
+
+    mockItemRequests[itemIdx].status = status;
+    mockItemRequests[itemIdx].lastEditedDate = new Date();
+
+    return NextResponse.json(mockItemRequests[itemIdx], { status: 200 });
+  } catch (e) {
+    return NextResponse.json(
+      { message: "An unknown error occured." },
+      { status: 500 }
+    );
+  }
+}
+
+export async function PUT(request: Request) {
+  try {
+    const { requestorName, itemRequested } = await request.json();
+
+    if (!requestorName || !itemRequested) {
+      return NextResponse.json(
+        {
+          message:
+            "Invalid input: requestorName and itemRequested are required.",
+        },
+        { status: 400 }
+      );
+    }
+
+    const newId = Math.max(...mockItemRequests.map((item) => item.id)) + 1;
+
+    const newRequest = {
+      id: newId,
+      requestorName,
+      itemRequested,
+      requestCreatedDate: new Date(),
+      lastEditedDate: new Date(),
+      status: RequestStatus.PENDING,
+    };
+
+    mockItemRequests.push(newRequest);
+
+    return NextResponse.json(newRequest, { status: 201 });
+  } catch (e) {
+    return NextResponse.json(
+      { message: "An unknow error occured" },
+      { status: 500 }
+    );
   }
 }

@@ -2,7 +2,7 @@
 
 <!-- Make sure you fill out this checklist with what you've done before submitting! -->
 
-- [ ] Read the README [please please please]
+- [Done] Read the README [please please please]
 - [ ] Something cool!
 - [ ] Back-end
   - [ ] Minimum Requirements
@@ -25,9 +25,9 @@
   - [Done] Main Requirements
     - [Done] Pagination
     - [Done] Tabs
-  - [ ] Above and Beyond
-    - [ ] Batch edits
-    - [ ] Batch deletes
+  - [Done] Above and Beyond
+    - [Done] Batch edits
+    - [Done] Batch deletes
 
 # Notes
 

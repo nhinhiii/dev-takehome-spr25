@@ -31,7 +31,8 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
         <Menu.Button
           className={cn(
             "status-pills w-full justify-between transition-colors",
-            statusPillsMap[value.value] || "status-pills-pending"
+            statusPillsMap[value.value] ||
+              "items-center text-gray-text border border-gray-stroke bg-gray-fill-light hover:bg-primary-fill rounded-sm"
           )}
         >
           <span>{value.label}</span>

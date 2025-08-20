@@ -1,5 +1,6 @@
 "use client";
 
+import BatchBar from "@/components/molecules/BatchBar";
 import Pagination from "@/components/molecules/Pagination";
 import RequestsTable from "@/components/tables/RequestTable";
 import { PaginatedRequest, RequestStatus } from "@/lib/types/request";
@@ -158,6 +159,26 @@ export default function ItemRequestsPage() {
     }
   };
 
+  const handleBatchUpdate = (status: RequestStatus) => {
+    if (selectedRows.size === 0) {
+      alert("There is no items to update");
+    } else if (status) {
+      toast.success(`Update ${selectedRows.size} items to "${status}"`);
+      setSelectedRows(new Set());
+    }
+  };
+
+  const handleBatchDelete = () => {
+    if (selectedRows.size === 0) {
+      alert("There is no items to delete");
+    } else if (
+      window.confirm(`Are you sure want to delete ${selectedRows.size} items?`)
+    ) {
+      toast.error(`Deleted ${selectedRows.size} items`);
+      setSelectedRows(new Set());
+    }
+  };
+
   const requests = paginatedData?.data ?? [];
   const totalRecords = paginatedData?.totalRecords ?? 0;
   const pageSize = paginatedData?.pageSize ?? 10;
@@ -167,10 +188,15 @@ export default function ItemRequestsPage() {
       <Toaster position="top-center" />
       <main className="p-4 sm:p-6 md:p-8">
         <div className="mx-auto max-w-7xl">
-          <header className="mb-6">
+          <header className="flex items-center justify-between my-6">
             <h1 className="text-2xl font-bold text-gray-text-strong">
               Item Requests
             </h1>
+
+            <BatchBar
+              onBatchUpdate={handleBatchUpdate}
+              onBatchDelete={handleBatchDelete}
+            />
           </header>
 
           <div className="rounded-lg bg-white p-10 shadow-sm">

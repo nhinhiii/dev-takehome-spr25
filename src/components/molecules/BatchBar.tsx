@@ -26,7 +26,7 @@ export default function BatchBar({
           onChange={(status) => onBatchUpdate(status as RequestStatus)}
         />
 
-        <div className="h-6 w-px bg-gray-stroke mx-2" />
+        <div className="h-6 w-px bg-gray-stroke ml-4" />
 
         <button
           className="p-2 rounded-md transition-colors hover:bg-danger-fill hover:text-danger-text text-gray-text"

@@ -8,7 +8,12 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 
-const API_ENDPOINT = "api/request";
+// CRITICAL FIX: Use an absolute path for the API endpoint
+const API_ENDPOINT = "/api/request";
+
+// =======================================================================
+//  API Functions
+// =======================================================================
 
 const fetchRequests = async (
   page: number,
@@ -18,14 +23,11 @@ const fetchRequests = async (
   if (status !== "all") {
     params.append("status", status);
   }
-
   const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
-
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "Failed to fetch requests.");
   }
-
   return response.json();
 };
 
@@ -36,17 +38,15 @@ const updateRequestStatus = async ({
   id: string;
   status: RequestStatus;
 }) => {
-  const response = await fetch(`/api/mock/request`, {
+  const response = await fetch(API_ENDPOINT, {
     method: "PATCH",
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify({ id, status }),
   });
-
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to updated Status");
+    throw new Error(errorData.message || "Failed to update status.");
   }
-
   return response.json();
 };
 
@@ -59,7 +59,6 @@ const batchUpdateRequestStatus = async (variables: {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(variables),
   });
-
   if (!response.ok) {
     const errorData = await response.json();
     throw new Error(errorData.message || "Failed to batch update statuses.");
@@ -73,13 +72,16 @@ const batchDeleteRequests = async (variables: { ids: string[] }) => {
     headers: { "Content-Type": "application/json" },
     body: JSON.stringify(variables),
   });
-
   if (!response.ok) {
     const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to delete update statuses.");
+    throw new Error(errorData.message || "Failed to delete requests.");
   }
   return response.json();
 };
+
+// =======================================================================
+//  Component
+// =======================================================================
 
 const StatusTab = ({
   label,
@@ -109,20 +111,21 @@ export default function ItemRequestsPage() {
   const [selectedRows, setSelectedRows] = useState(new Set<string>());
 
   const queryKey = ["requests", page, activeStatusTab];
+
   const {
     data: paginatedData,
     isLoading,
     isError,
     error,
   } = useQuery<PaginatedRequest, Error>({
-    queryKey: ["requests", page, activeStatusTab],
+    queryKey,
     queryFn: () => fetchRequests(page, activeStatusTab),
   });
 
   const singleUpdateMutation = useMutation({
     mutationFn: updateRequestStatus,
     onSuccess: () => {
-      toast.success("Status Updated!");
+      toast.success("Status updated!");
       queryClient.invalidateQueries({ queryKey });
     },
     onError: (err) => toast.error(`Error: ${err.message}`),
@@ -131,8 +134,8 @@ export default function ItemRequestsPage() {
   const batchUpdateMutation = useMutation({
     mutationFn: batchUpdateRequestStatus,
     onSuccess: (data) => {
-      toast.success(data.message || "Update Scuessful!");
-      queryClient.invalidateQueries({ queryKey });
+      toast.success(data.message || "Batch update successful!");
+      queryClient.invalidateQueries({ queryKey: ["requests"] });
       setSelectedRows(new Set());
     },
     onError: (err) => toast.error(`Error: ${err.message}`),
@@ -142,8 +145,12 @@ export default function ItemRequestsPage() {
     mutationFn: batchDeleteRequests,
     onSuccess: (data) => {
       toast.success(data.message || "Items deleted!");
-      queryClient.invalidateQueries({ queryKey });
       setSelectedRows(new Set());
+      if (page > 1 && selectedRows.size === (paginatedData?.data.length || 0)) {
+        setPage(page - 1);
+      } else {
+        queryClient.invalidateQueries({ queryKey: ["requests"] });
+      }
     },
     onError: (err) => toast.error(`Error: ${err.message}`),
   });
@@ -176,8 +183,8 @@ export default function ItemRequestsPage() {
   };
 
   const handleBatchUpdate = (status: RequestStatus) => {
-    if (selectedRows.size === 0 || !status) {
-      alert("There is no items to update");
+    if (selectedRows.size === 0) {
+      toast.error("Please select items to update.");
       return;
     }
     const ids = Array.from(selectedRows);
@@ -186,7 +193,7 @@ export default function ItemRequestsPage() {
 
   const handleBatchDelete = () => {
     if (selectedRows.size === 0) {
-      alert("There is no items to delete");
+      toast.error("Please select items to delete.");
       return;
     }
     toast(
@@ -230,13 +237,11 @@ export default function ItemRequestsPage() {
             <h1 className="text-2xl font-bold text-gray-text-strong">
               Item Requests
             </h1>
-
             <BatchBar
               onBatchUpdate={handleBatchUpdate}
               onBatchDelete={handleBatchDelete}
             />
           </header>
-
           <div className="rounded-lg bg-white p-10 shadow-sm">
             <div className="mb-4 flex space-x-2">
               <StatusTab
@@ -270,13 +275,11 @@ export default function ItemRequestsPage() {
                 onClick={handleTabClick}
               />
             </div>
-
             {isError && (
               <div className="py-8 text-center text-danger-text">
                 <p>Error: {error.message}</p>
               </div>
             )}
-
             {!isError && (
               <>
                 <RequestsTable
@@ -287,7 +290,6 @@ export default function ItemRequestsPage() {
                   onRowSelect={handleRowSelect}
                   onSelectAll={handleSelectAll}
                 />
-
                 <footer className="mt-4 flex justify-end">
                   <Pagination
                     pageNumber={page}

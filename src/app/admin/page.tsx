@@ -8,6 +8,8 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 
+const API_ENDPOINT = "api/request";
+
 const fetchRequests = async (
   page: number,
   status: string
@@ -17,7 +19,7 @@ const fetchRequests = async (
     params.append("status", status);
   }
 
-  const response = await fetch(`/api/mock/request?${params.toString()}`);
+  const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
 
   if (!response.ok) {
     const errorData = await response.json();
@@ -31,7 +33,7 @@ const updateRequestStatus = async ({
   id,
   status,
 }: {
-  id: number;
+  id: string;
   status: RequestStatus;
 }) => {
   const response = await fetch(`/api/mock/request`, {
@@ -45,6 +47,37 @@ const updateRequestStatus = async ({
     throw new Error(errorData.message || "Failed to updated Status");
   }
 
+  return response.json();
+};
+
+const batchUpdateRequestStatus = async (variables: {
+  ids: string[];
+  status: RequestStatus;
+}) => {
+  const response = await fetch(API_ENDPOINT, {
+    method: "PATCH",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(variables),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to batch update statuses.");
+  }
+  return response.json();
+};
+
+const batchDeleteRequests = async (variables: { ids: string[] }) => {
+  const response = await fetch(API_ENDPOINT, {
+    method: "DELETE",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify(variables),
+  });
+
+  if (!response.ok) {
+    const errorData = await response.json();
+    throw new Error(errorData.message || "Failed to delete update statuses.");
+  }
   return response.json();
 };
 
@@ -73,8 +106,9 @@ export default function ItemRequestsPage() {
   const queryClient = useQueryClient();
   const [page, setPage] = useState(1);
   const [activeStatusTab, setActiveStatusTab] = useState("all");
-  const [selectedRows, setSelectedRows] = useState(new Set<number>());
+  const [selectedRows, setSelectedRows] = useState(new Set<string>());
 
+  const queryKey = ["requests", page, activeStatusTab];
   const {
     data: paginatedData,
     isLoading,
@@ -85,55 +119,37 @@ export default function ItemRequestsPage() {
     queryFn: () => fetchRequests(page, activeStatusTab),
   });
 
-  const mutation = useMutation({
+  const singleUpdateMutation = useMutation({
     mutationFn: updateRequestStatus,
-    onMutate: async (updatedRequest) => {
-      await queryClient.cancelQueries({ queryKey: ["requests"] });
-      const previousData = queryClient.getQueryData<PaginatedRequest>([
-        "requests",
-        page,
-        activeStatusTab,
-      ]);
-      queryClient.setQueryData<PaginatedRequest>(
-        ["requests", page, activeStatusTab],
-        (oldData) => {
-          if (!oldData) return undefined;
-          return {
-            ...oldData,
-            data: oldData.data.map((req) =>
-              req.id === updatedRequest.id
-                ? { ...req, status: updatedRequest.status }
-                : req
-            ),
-          };
-        }
-      );
-      return { previousData };
-    },
-
-    onError: (err, variables, context) => {
-      if (context?.previousData) {
-        queryClient.setQueryData(
-          ["requests", page, activeStatusTab],
-          context.previousData
-        );
-      }
-      toast.error(`Error: ${err.message}`);
-    },
-
-    onSettled: () => {
-      queryClient.invalidateQueries({
-        queryKey: ["requests", page, activeStatusTab],
-      });
-    },
-
     onSuccess: () => {
-      toast.success("Status updated!");
+      toast.success("Status Updated!");
+      queryClient.invalidateQueries({ queryKey });
     },
+    onError: (err) => toast.error(`Error: ${err.message}`),
   });
 
-  const handleStatusChange = (id: number, status: RequestStatus) => {
-    mutation.mutate({ id, status });
+  const batchUpdateMutation = useMutation({
+    mutationFn: batchUpdateRequestStatus,
+    onSuccess: (data) => {
+      toast.success(data.message || "Update Scuessful!");
+      queryClient.invalidateQueries({ queryKey });
+      setSelectedRows(new Set());
+    },
+    onError: (err) => toast.error(`Error: ${err.message}`),
+  });
+
+  const batchDeleteMutation = useMutation({
+    mutationFn: batchDeleteRequests,
+    onSuccess: (data) => {
+      toast.success(data.message || "Items deleted!");
+      queryClient.invalidateQueries({ queryKey });
+      setSelectedRows(new Set());
+    },
+    onError: (err) => toast.error(`Error: ${err.message}`),
+  });
+
+  const handleStatusChange = (id: string, status: RequestStatus) => {
+    singleUpdateMutation.mutate({ id, status });
   };
 
   const handleTabClick = (status: string) => {
@@ -142,7 +158,7 @@ export default function ItemRequestsPage() {
     setSelectedRows(new Set());
   };
 
-  const handleRowSelect = (id: number) => {
+  const handleRowSelect = (id: string) => {
     setSelectedRows((prev) => {
       const newSet = new Set(prev);
       if (newSet.has(id)) newSet.delete(id);
@@ -160,23 +176,45 @@ export default function ItemRequestsPage() {
   };
 
   const handleBatchUpdate = (status: RequestStatus) => {
-    if (selectedRows.size === 0) {
+    if (selectedRows.size === 0 || !status) {
       alert("There is no items to update");
-    } else if (status) {
-      toast.success(`Update ${selectedRows.size} items to "${status}"`);
-      setSelectedRows(new Set());
+      return;
     }
+    const ids = Array.from(selectedRows);
+    batchUpdateMutation.mutate({ ids, status });
   };
 
   const handleBatchDelete = () => {
     if (selectedRows.size === 0) {
       alert("There is no items to delete");
-    } else if (
-      window.confirm(`Are you sure want to delete ${selectedRows.size} items?`)
-    ) {
-      toast.error(`Deleted ${selectedRows.size} items`);
-      setSelectedRows(new Set());
+      return;
     }
+    toast(
+      (t) => (
+        <span className="flex flex-col items-center gap-2">
+          <b>Delete {selectedRows.size} items?</b>
+          <div className="flex gap-2">
+            <button
+              className="rounded-md bg-danger-bg px-3 py-1 text-sm text-white hover:bg-danger-bg-hover"
+              onClick={() => {
+                const ids = Array.from(selectedRows);
+                batchDeleteMutation.mutate({ ids });
+                toast.dismiss(t.id);
+              }}
+            >
+              Confirm
+            </button>
+            <button
+              className="rounded-md bg-gray-200 px-3 py-1 text-sm hover:bg-gray-300"
+              onClick={() => toast.dismiss(t.id)}
+            >
+              Cancel
+            </button>
+          </div>
+        </span>
+      ),
+      { duration: 6000 }
+    );
   };
 
   const requests = paginatedData?.data ?? [];

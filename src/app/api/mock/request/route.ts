@@ -48,7 +48,7 @@ export async function PUT(request: NextRequest) {
 export async function GET(request: NextRequest) {
   try {
     await dbConnect();
-    const {searchParams} = new URL(request.url);
+    const { searchParams } = new URL(request.url);
     const page = parseInt(searchParams.get("page") || "1");
 
     const filter: any = {};
@@ -56,14 +56,14 @@ export async function GET(request: NextRequest) {
       filter.status = status;
     }
 
-    const skip = (page -1) * PAGINATION_PAGE_SIZE;
+    const skip = (page - 1) * PAGINATION_PAGE_SIZE;
     const totalRecords = await Request.countDocuments(filter);
     const dbRequests = await Request.find(filter)
-      .sort({reuestCreatedDate: -1})
+      .sort({ reuestCreatedDate: -1 })
       .skip(skip)
       .limit(PAGINATION_PAGE_SIZE)
       .lean();
-    
+
     const formattedData = dbRequests.map(formatRequest);
 
     return NextResponse.json({
@@ -71,10 +71,13 @@ export async function GET(request: NextRequest) {
       page,
       totalRecords,
       pageSizeL: PAGINATION_PAGE_SIZE,
-    })
+    });
   } catch (error) {
     console.error("Error fetching requests:", error);
-    return NextResponse.json({message: "Internal Server Error"}, {status: 500});
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }
 
@@ -82,23 +85,66 @@ export async function PATCH(request: NextRequest) {
   try {
     await dbConnect();
     const body = await request.json();
-    const {id, ids, status} = body;
+    const { id, ids, status } = body;
 
-    if(!status) {
-      return NextResponse.json({message: "Status is required for update."}, {status: 400})
+    if (!status) {
+      return NextResponse.json(
+        { message: "Status is required for update." },
+        { status: 400 }
+      );
     }
 
-    if(id) {
+    if (id) {
       const updatedRequest = await Request.findByAndUpdate(
         id,
-        {$set: {status: status, lastEditedDate: new Date()}},
-        {new: true}
+        { $set: { status: status, lastEditedDate: new Date() } },
+        { new: true }
       );
 
-      if(!updatedRequest) {
-        return NextResponse.json({message: `Request with ID ${id} not found`}, {status: 404});
+      if (!updatedRequest) {
+        return NextResponse.json(
+          { message: `Request with ID ${id} not found` },
+          { status: 404 }
+        );
       }
-      return NextResponse.json(formatRequest(updatedRequest), {status: 200});
+      return NextResponse.json(formatRequest(updatedRequest), { status: 200 });
+    } else if (ids && Array.isArray(ids) && ids.length > 0) {
+      const updatedResult = await Request.updateMany(
+        { _id: { $in: ids } },
+        { $set: { status: status, lastEditedDate: new Date() } }
+      );
+      if (updatedResult.matchedCount === 0) {
+        return NextResponse.json(
+          { message: "No matching requests found for the given IDs." },
+          { status: 404 }
+        );
+      }
+      return NextResponse.json(
+        {
+          message: `${updatedResult.modifiedCount} requests updated successfully`,
+        },
+        { status: 200 }
+      );
+    } else {
+      return NextResponse.json(
+        {
+          message:
+            "Invalid request body. Provide either a single 'id' or an array of 'ids'.",
+        },
+        { status: 400 }
+      );
     }
+  } catch (error: any) {
+    if (error.name === "CastError") {
+      return NextResponse.json(
+        { message: `Invalid ID format provided.` },
+        { status: 400 }
+      );
+    }
+    console.error("Error updating request(s):", error);
+    return NextResponse.json(
+      { message: "Internal Server Error" },
+      { status: 500 }
+    );
   }
 }

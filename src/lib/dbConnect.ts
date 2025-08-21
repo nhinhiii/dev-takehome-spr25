@@ -33,7 +33,7 @@ async function dbConnect() {
     cached.promise = null;
     throw e;
   }
-  return cached.com;
+  return cached.conn;
 }
 
 export default dbConnect;

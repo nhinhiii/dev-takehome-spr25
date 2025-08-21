@@ -33,7 +33,7 @@ const RequestSchema: Schema = new Schema({
   status: {
     type: String,
     required: true,
-    emum: {
+    enum: {
       values: Object.values(RequestStatus),
       message: "{VALUE} is not supported",
     },

@@ -6,7 +6,7 @@
 - [ ] Something cool!
 - [ ] Back-end
   - [ ] Minimum Requirements
-    - [ ] Setup MongoDB database
+    - [Done] Setup MongoDB database
     - [ ] Setup item requests collection
     - [ ] `PUT /api/request`
     - [ ] `GET /api/request?page=_`

@@ -52,7 +52,7 @@ export default function Dropdown({ options, value, onChange }: DropdownProps) {
         <Menu.Items className="absolute right-0 mt-2 w-full origin-top-right rounded-b-lg bg-white shadow-lg ring-1 ring-black ring-opacity-5 focus:outline-none z-10">
           <div className="px-1 py-1">
             {options.map((option) => (
-              <Menu.Item key={option.value}>
+              <Menu.Item key={option.value} as={Fragment}>
                 {({ active }) => (
                   <button
                     onClick={() => onChange(option.value)}

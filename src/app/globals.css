@@ -46,7 +46,7 @@
     @apply h-4 w-4 cursor-pointer rounded border-gray-stroke bg-white transition-colors;
     @apply focus:outline-none focus:ring-2 focus:ring-primary focus:ring-offset-2;
     @apply hover:bg-primary-fill;
-    @apply checked:border-primary checked:bg-primary checked:bg-[url('/icons/checkmark.svg')] bg-center bg-no-repeat;
+    @apply checked:border-primary checked:bg-primary bg-center bg-no-repeat;
   }
 
   .checkbox:checked {

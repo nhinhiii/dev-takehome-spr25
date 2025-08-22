@@ -212,7 +212,7 @@ export default function ItemRequestsPage() {
           <b>Delete {selectedRows.size} items?</b>
           <div className="flex gap-2">
             <button
-              className="rounded-md bg-danger-bg px-3 py-1 text-sm text-white hover:bg-danger-bg-hover"
+              className="rounded-md bg-danger-fill px-3 py-1 text-sm text-black hover:bg-danger-text hover:text-white"
               onClick={() => {
                 const ids = Array.from(selectedRows);
                 batchDeleteMutation.mutate({ ids });

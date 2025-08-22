@@ -1,5 +1,5 @@
 import { RequestStatus } from "@/lib/types/request";
-import { model, models, Schema } from "mongoose";
+import mongoose, { Schema, Document, models, model } from "mongoose";
 
 export interface IRequest extends Document {
   requestorName: string;
@@ -42,5 +42,4 @@ const RequestSchema: Schema = new Schema({
   },
 });
 
-export default Request =
-  models.Request || model<IRequest>("Request", RequestSchema);
+export default models.Request || model<IRequest>("Request", RequestSchema);

@@ -8,12 +8,7 @@ import { useMutation, useQuery, useQueryClient } from "@tanstack/react-query";
 import { useState } from "react";
 import { Toaster, toast } from "react-hot-toast";
 
-// CRITICAL FIX: Use an absolute path for the API endpoint
 const API_ENDPOINT = "/api/request";
-
-// =======================================================================
-//  API Functions
-// =======================================================================
 
 const fetchRequests = async (
   page: number,
@@ -23,11 +18,32 @@ const fetchRequests = async (
   if (status !== "all") {
     params.append("status", status);
   }
-  const response = await fetch(`${API_ENDPOINT}?${params.toString()}`);
+
+  const fetchUrl = `${API_ENDPOINT}?${params.toString()}`;
+
+  console.log("Attempting to fetch from URL:", fetchUrl);
+
+  const response = await fetch(fetchUrl);
+
   if (!response.ok) {
-    const errorData = await response.json();
-    throw new Error(errorData.message || "Failed to fetch requests.");
+    console.error(
+      "Fetch failed with status:",
+      response.status,
+      response.statusText
+    );
+    const responseText = await response.text();
+    console.error("Response body:", responseText);
+
+    try {
+      const errorData = JSON.parse(responseText);
+      throw new Error(errorData.message || "Failed to fetch requests.");
+    } catch (e) {
+      throw new Error(
+        `The server returned a non-JSON response (Status: ${response.status}). Check the file path of your API route.`
+      );
+    }
   }
+
   return response.json();
 };
 
@@ -49,7 +65,6 @@ const updateRequestStatus = async ({
   }
   return response.json();
 };
-
 const batchUpdateRequestStatus = async (variables: {
   ids: string[];
   status: RequestStatus;
@@ -65,7 +80,6 @@ const batchUpdateRequestStatus = async (variables: {
   }
   return response.json();
 };
-
 const batchDeleteRequests = async (variables: { ids: string[] }) => {
   const response = await fetch(API_ENDPOINT, {
     method: "DELETE",
@@ -78,10 +92,6 @@ const batchDeleteRequests = async (variables: { ids: string[] }) => {
   }
   return response.json();
 };
-
-// =======================================================================
-//  Component
-// =======================================================================
 
 const StatusTab = ({
   label,
